@@ -10,7 +10,7 @@ Here we assume preprocessing steps including motion/Eddy current correction, mas
 
 Further instructions for using FSL, particularly TBSS can be found on the website: http://www.fmrib.ox.ac.uk/fsl/tbss/index.html
 
-1. Download a copy of the ENIGMA-DTI template FA map, edited skeleton, masks and corresponding distance map from this repository (folder titled _enigmaDTI_). The downloaded archive will have the following files:
+1. Download a copy of the ENIGMA-DTI template FA map, edited skeleton, masks and corresponding distance map from this repository (folder titled [enigmaDTI](enigmaDTI/)). The downloaded archive will have the following files:
     - ENIGMA_DTI_FA.nii.gz
     - ENIGMA_DTI_FA_mask.nii.gz
     - ENIGMA_DTI_FA_skeleton.nii.gz
