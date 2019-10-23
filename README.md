@@ -157,18 +157,18 @@ The following steps will allow you to extract relevant ROI information from the 
 
 Bash shell scripts and compiled versions of the code **bold** have been made available to run on Linux -based workstations. Raw code is also provided in the case re-compilation is needed.
 The downloaded archive will have the following files:
- * [**run_ENIGMA_ROI_ALL_script.sh**](run_ENIGMA_ROI_ALL_script.sh)
- * [**singleSubjROI_exe**](singleSubjROI_exe)
- * [singleSubject_FA_ROI.cpp](singleSubject_FA_ROI.cpp)
- * [**averageSubjectTracts_exe**](averageSubjectTracts_exe)
- * [average_subj_tract_info.cpp](average_subj_tract_info.cpp)
- * [**run_combineSubjectROI_script.sh**](run_combineSubjectROI_script.sh)
- * [combine_subject_tables.R](combine_subject_tables.R)
+ * [**run_ENIGMA_ROI_ALL_script.sh**](ROIextraction_info/run_ENIGMA_ROI_ALL_script.sh)
+ * [**singleSubjROI_exe**](ROIextraction_info/singleSubjROI_exe)
+ * [singleSubject_FA_ROI.cpp](ROIextraction_info/singleSubject_FA_ROI.cpp)
+ * [**averageSubjectTracts_exe**](ROIextraction_info/averageSubjectTracts_exe)
+ * [average_subj_tract_info.cpp](ROIextraction_info/average_subj_tract_info.cpp)
+ * [**run_combineSubjectROI_script.sh**](ROIextraction_info/run_combineSubjectROI_script.sh)
+ * [combine_subject_tables.R](ROIextraction_info/combine_subject_tables.R)
  
 _necessary files_
- * [ENIGMA_look_up_table.txt](ENIGMA_look_up_table.txt)
- * [JHU-WhiteMatter-labels-1mm.nii.gz](JHU-WhiteMatter-labels-1mm.nii.gz)
- * [mean_FA_skeleton.nii.gz](mean_FA_skeleton.nii.gz)
+ * [ENIGMA_look_up_table.txt](ROIextraction_info/ENIGMA_look_up_table.txt)
+ * [JHU-WhiteMatter-labels-1mm.nii.gz](ROIextraction_info/JHU-WhiteMatter-labels-1mm.nii.gz)
+ * [mean_FA_skeleton.nii.gz](enigmaDTI/mean_FA_skeleton.nii.gz)
 
  _example files_
  * [ALL_Subject_Info.txt](ALL_Subject_Info.txt)
