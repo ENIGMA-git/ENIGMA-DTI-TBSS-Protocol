@@ -157,31 +157,31 @@ The following steps will allow you to extract relevant ROI information from the 
 
 Bash shell scripts and compiled versions of the code **bold** have been made available to run on Linux -based workstations. Raw code is also provided in the case re-compilation is needed.
 The downloaded archive will have the following files:
- * **run_ENIGMA_ROI_ALL_script.sh**
- * **singleSubjROI_exe**
- * singleSubject_FA_ROI.cpp
- * **averageSubjectTracts_exe**
- * average_subj_tract_info.cpp
- * **run_combineSubjectROI_script.sh**
- * combine_subject_tables.R
+ * [**run_ENIGMA_ROI_ALL_script.sh**](run_ENIGMA_ROI_ALL_script.sh)
+ * [**singleSubjROI_exe**](singleSubjROI_exe)
+ * [singleSubject_FA_ROI.cpp](singleSubject_FA_ROI.cpp)
+ * [**averageSubjectTracts_exe**](averageSubjectTracts_exe)
+ * [average_subj_tract_info.cpp](average_subj_tract_info.cpp)
+ * [**run_combineSubjectROI_script.sh**](run_combineSubjectROI_script.sh)
+ * [combine_subject_tables.R](combine_subject_tables.R)
  
 _necessary files_
- * ENIGMA_look_up_table.txt
- * JHU-WhiteMatter-labels-1mm.nii.gz
- * mean_FA_skeleton.nii.gz
+ * [ENIGMA_look_up_table.txt](ENIGMA_look_up_table.txt)
+ * [JHU-WhiteMatter-labels-1mm.nii.gz](JHU-WhiteMatter-labels-1mm.nii.gz)
+ * [mean_FA_skeleton.nii.gz](mean_FA_skeleton.nii.gz)
 
  _example files_
- * ALL_Subject_Info.txt
- * subjectList.csv
- * Subject1_FAskel.nii.gz
- * Subject7_FAskel.nii.gz
+ * [ALL_Subject_Info.txt](ALL_Subject_Info.txt)
+ * [subjectList.csv](subjectList.csv)
+ * [Subject1_FAskel.nii.gz](Subject1_FAskel.nii.gz)
+ * [Subject7_FAskel.nii.gz](Subject7_FAskel.nii.gz)
 
  _example outputs_
- * Subject1_ROIout.csv
- * Subject1_ROIout_avgs.csv
- * Subject7_ROIout.csv
- * Subject7_ROIout_avgs.csv
- * combinedROItable.csv
+ * [Subject1_ROIout.csv](Subject1_ROIout.csv)
+ * [Subject1_ROIout_avgs.csv](Subject1_ROIout_avgs.csv)
+ * [Subject7_ROIout.csv](Subject7_ROIout.csv)
+ * [Subject7_ROIout_avgs.csv](Subject7_ROIout_avgs.csv)
+ * [combinedROItable.csv](combinedROItable.csv)
 
 3. **run_ENIGMA_ROI_ALL_script.sh** provides an example shell script on how to run all the pieces in series.
     * This can be modified to run the first two portions in parallel if desired.
