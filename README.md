@@ -227,3 +227,5 @@ _necessary files_
     * (see **combinedROItable.csv** for example output)
 
 Congrats! Now you should have all of your subjects ROIs in one spreadsheet with only relevant covariates ready for association testing!
+
+ ![picture](http://enigma.ini.usc.edu/wp-content/uploads/DTI_Protocols/eDTI_protocolFigures/eDTItemplate.png)![picture](http://enigma.ini.usc.edu/wp-content/uploads/DTI_Protocols/eDTI_protocolFigures/eDTIskel.png)![picture](http://enigma.ini.usc.edu/wp-content/uploads/DTI_Protocols/eDTI_protocolFigures/rois.png)
