@@ -173,14 +173,14 @@ _necessary files_
  _example files_
  * [ALL_Subject_Info.txt](ROIextraction_info/ALL_Subject_Info.txt)
  * [subjectList.csv](ROIextraction_info/subjectList.csv)
- * [Subject1_FAskel.nii.gz](ROIextraction_info/Subject1_FAskel.nii.gz)
- * [Subject7_FAskel.nii.gz](ROIextraction_info/Subject7_FAskel.nii.gz)
+ * [Subject1_FAskel.nii.gz](ROIextraction_info/Subject1_FAskel.nii.gz) #not named the same as download
+ * [Subject7_FAskel.nii.gz](ROIextraction_info/Subject7_FAskel.nii.gz) #not named the same as download
 
  _example outputs_
  * [Subject1_ROIout.csv](ROIextraction_info/ENIGMA_ROI_part1/Subject1_ROIout.csv)
- * [Subject1_ROIout_avgs.csv](ROIextraction_info/ENIGMA_ROI_part2/Subject1_ROIout_avgs.csv)
+ * [Subject1_ROIout_avgs.csv](ROIextraction_info/ENIGMA_ROI_part2/Subject1_ROIout_avgs.csv) #not named the same as download
  * [Subject7_ROIout.csv](ROIextraction_info/ENIGMA_ROI_part1/Subject7_ROIout.csv)
- * [Subject7_ROIout_avgs.csv](ROIextraction_info/ENIGMA_ROI_part2/Subject7_ROIout_avgs.csv)
+ * [Subject7_ROIout_avgs.csv](ROIextraction_info/ENIGMA_ROI_part2/Subject7_ROIout_avgs.csv) #not named the same as download
  * [combinedROItable.csv](ROIextraction_info/combinedROItable.csv)
 
 3. **run_ENIGMA_ROI_ALL_script.sh** provides an example shell script on how to run all the pieces in series.
