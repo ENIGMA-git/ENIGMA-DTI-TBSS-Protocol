@@ -153,7 +153,7 @@ The following steps will allow you to extract relevant ROI information from the 
 ## Instructions
 
 1. Download and install [R](http://cran.r-project.org/)
-2. Download a copy of the scripts and executables from the folder in this repository titled [ROIextraction_info](ROIextraction_info)
+2. Download a copy of the scripts and executables from the folder titled [ROIextraction_info](ROIextraction_info)
 
 Bash shell scripts and compiled versions of the code **bold** have been made available to run on Linux -based workstations. Raw code is also provided in the case re-compilation is needed.
 The downloaded archive will have the following files:
