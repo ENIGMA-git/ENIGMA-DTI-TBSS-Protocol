@@ -1,0 +1,1 @@
+familyID	subjectID	TBV	Age	Sexfam1	Subject1	1089.66	25.09	2fam1	Subject2	1101.03	25.09	2fam1	Subject3	1290.08	26.34	2fam2	Subject4	1578.38	26.34	1fam2	Subject5	1458.71	24.35	1fam3	Subject6	1365.76	24.35	1fam4	Subject7	1302.82	22.38	2fam4	Subject8	1279.04	22.38	2fam5	Subject9	1525.77	24.24	1fam6	Subject10	1280.56	24.24	2
