@@ -10,7 +10,7 @@ Here we assume preprocessing steps including motion/Eddy current correction, mas
 
 Further instructions for using FSL, particularly TBSS can be found on the website: http://www.fmrib.ox.ac.uk/fsl/tbss/index.html
 
-1. Download a copy of the ENIGMA-DTI template FA map, edited skeleton, masks and corresponding distance map from this repository (folder titled _enigmaDTI_). The downloaded archive will have the following files:
+1. Download a copy of the ENIGMA-DTI template FA map, edited skeleton, masks and corresponding distance map from this repository (folder titled [enigmaDTI](enigmaDTI/)). The downloaded archive will have the following files:
     - ENIGMA_DTI_FA.nii.gz
     - ENIGMA_DTI_FA_mask.nii.gz
     - ENIGMA_DTI_FA_skeleton.nii.gz
@@ -153,35 +153,35 @@ The following steps will allow you to extract relevant ROI information from the 
 ## Instructions
 
 1. Download and install [R](http://cran.r-project.org/)
-2. Download a copy of the scripts and executables from the folder in this repository titled "ROIextraction_info"
+2. Download a copy of the scripts and executables from the folder titled [ROIextraction_info](ROIextraction_info)
 
 Bash shell scripts and compiled versions of the code **bold** have been made available to run on Linux -based workstations. Raw code is also provided in the case re-compilation is needed.
 The downloaded archive will have the following files:
- * **run_ENIGMA_ROI_ALL_script.sh**
- * **singleSubjROI_exe**
- * singleSubject_FA_ROI.cpp
- * **averageSubjectTracts_exe**
- * average_subj_tract_info.cpp
- * **run_combineSubjectROI_script.sh**
- * combine_subject_tables.R
+ * [**run_ENIGMA_ROI_ALL_script.sh**](ROIextraction_info/run_ENIGMA_ROI_ALL_script.sh)
+ * [**singleSubjROI_exe**](ROIextraction_info/singleSubjROI_exe)
+ * [singleSubject_FA_ROI.cpp](ROIextraction_info/singleSubject_FA_ROI.cpp)
+ * [**averageSubjectTracts_exe**](ROIextraction_info/averageSubjectTracts_exe)
+ * [average_subj_tract_info.cpp](ROIextraction_info/average_subj_tract_info.cpp)
+ * [**run_combineSubjectROI_script.sh**](ROIextraction_info/run_combineSubjectROI_script.sh)
+ * [combine_subject_tables.R](ROIextraction_info/combine_subject_tables.R)
  
 _necessary files_
- * ENIGMA_look_up_table.txt
- * JHU-WhiteMatter-labels-1mm.nii.gz
- * mean_FA_skeleton.nii.gz
+ * [ENIGMA_look_up_table.txt](ROIextraction_info/ENIGMA_look_up_table.txt)
+ * [JHU-WhiteMatter-labels-1mm.nii.gz](ROIextraction_info/JHU-WhiteMatter-labels-1mm.nii.gz)
+ * [mean_FA_skeleton.nii.gz](ROIextraction_info/mean_FA_skeleton.nii.gz)
 
  _example files_
- * ALL_Subject_Info.txt
- * subjectList.csv
- * Subject1_FAskel.nii.gz
- * Subject7_FAskel.nii.gz
+ * [ALL_Subject_Info.txt](ROIextraction_info/ALL_Subject_Info.txt)
+ * [subjectList.csv](ROIextraction_info/subjectList.csv)
+ * [Subject1_FAskel.nii.gz](ROIextraction_info/Subject1_FAskel.nii.gz) #not named the same as download
+ * [Subject7_FAskel.nii.gz](ROIextraction_info/Subject7_FAskel.nii.gz) #not named the same as download
 
  _example outputs_
- * Subject1_ROIout.csv
- * Subject1_ROIout_avgs.csv
- * Subject7_ROIout.csv
- * Subject7_ROIout_avgs.csv
- * combinedROItable.csv
+ * [Subject1_ROIout.csv](ROIextraction_info/ENIGMA_ROI_part1/Subject1_ROIout.csv)
+ * [Subject1_ROIout_avgs.csv](ROIextraction_info/ENIGMA_ROI_part2/Subject1_ROIout_avgs.csv) #not named the same as download
+ * [Subject7_ROIout.csv](ROIextraction_info/ENIGMA_ROI_part1/Subject7_ROIout.csv)
+ * [Subject7_ROIout_avgs.csv](ROIextraction_info/ENIGMA_ROI_part2/Subject7_ROIout_avgs.csv) #not named the same as download
+ * [combinedROItable.csv](ROIextraction_info/combinedROItable.csv)
 
 3. **run_ENIGMA_ROI_ALL_script.sh** provides an example shell script on how to run all the pieces in series.
     * This can be modified to run the first two portions in parallel if desired.
