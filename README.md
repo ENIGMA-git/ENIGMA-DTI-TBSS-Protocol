@@ -277,5 +277,79 @@ which we will define this through the variable parentDirectory but you should mo
     - Mean and axial diffusivities are output as part of DTIFIT, but here we will compute the radial diffusivity as a mean of the second and third eigenvalue images.
     - The following is written in a loop so all subjects run in series, however this can be parallelized
     - Use the latest FSL version 5.0.7 if you have it, but the same code will work for older versions as well.
-        
+
+```
+FSLDIR=/usr/local/fsl-5.0.7/
+ 
+ENIGMAtemplateDirectory=/enigmaDTI/TBSS/ENIGMA_targets/
+parentDirectory=/enigmaDTI/TBSS/run_tbss/
+dtifit_folder=/enigmaDTI/DTIFIT/
+ 
+mkdir ${parentDirectory}/MD/
+mkdir ${parentDirectory}/AD/
+mkdir ${parentDirectory}/RD/
+ 
+cd $parentDirectory
+ 
+ 
+for subj in subj_1 subj_2 … subj_N
+do
+   cp ${dtifit_folder}/${subj}*_MD.nii.gz ${parentDirectory}/MD/${subj}_MD.nii.gz
+   cp ${dtifit_folder}/${subj}*_L1.nii.gz ${parentDirectory}/AD/${subj}_AD.nii.gz
+   $FSLDIR/bin/fslmaths ${dtifit_folder}/${subj}*_L2.nii.gz –add ${dtifit_folder}/${subj}*_L3.nii.gz \\
+       -div 2 ${parentDirectory}/RD/${subj}_RD.nii.gz
+ 
+ 
+   for DIFF in MD AD RD
+   do
+   mkdir -p ${parentDirectory}/${DIFF}/origdata/
+   mkdir -p ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/
+   mkdir -p ${parentDirectory}/${DIFF}_individ/${subj}/stats/
+ 
+   $FSLDIR/bin/fslmaths ${parentDirectory}/${DIFF}/${subj}_${DIFF}.nii.gz -mas \\
+      ${parentDirectory}/FA/${subj}_FA_FA_mask.nii.gz \\ 
+      ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF}
+ 
+   $FSLDIR/bin/immv ${parentDirectory}/${DIFF}/${subj} ${parentDirectory}/${DIFF}/origdata/
+ 
+   $FSLDIR/bin/applywarp -i ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF} -o \\ 
+      ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF}_to_target -r \\ 
+      $FSLDIR/data/standard/FMRIB58_FA_1mm -w ${parentDirectory}/FA/${subj}_FA_FA_to_target_warp.nii.gz
+ 
+##remember to change ENIGMAtemplateDirectory if you re-masked the template
+ 
+  $FSLDIR/bin/fslmaths ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF}_to_target -mas \\
+       ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_mask.nii.gz \\
+       ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_masked_${DIFF}.nii.gz	
+ 
+   $FSLDIR/bin/tbss_skeleton -i ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA.nii.gz -p 0.049 \\
+       ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_skeleton_mask_dst.nii.gz $FSLDIR/data/standard/LowerCingulum_1mm.nii.gz \\         
+       ${parentDirectory}/FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz  \\ 
+       ${parentDirectory}/${DIFF}_individ/${subj}/stats/${subj}_masked_${DIFF}skel -a \\ 
+       ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_masked_${DIFF}.nii.gz -s \\ 
+       ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_skeleton_mask.nii.gz
+ 
+ 
+   done
+done
+
+```
+
+Now you should have your diffusivity skeletons!
+- Check to make sure all skeletons cover the identical set of voxels, for example:
+
+```
+FSLDIR=/usr/local/fsl-5.0.7/
+ 
+${FSLDIR}/bin/fslview  ${parentDirectory}/MD_individ/${subj}/stats/subj_1_masked_MDskel.nii.gz \\
+     ${parentDirectory}/FA_individ/subj_1/stats/subj_1_masked_FAskel.nii.gz \\
+     ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_skeleton.nii.gz
+```
+
+     
+
+
+
+
+
 
