@@ -322,7 +322,7 @@ do
        ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_mask.nii.gz \\
        ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_masked_${DIFF}.nii.gz	
  
-   $FSLDIR/bin/tbss_skeleton -i ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA.nii.gz -p 0.049 \\
+   $FSLDIR/bin/tbss_skeleton -i ./FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz -p 0.049 \\
        ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_skeleton_mask_dst.nii.gz $FSLDIR/data/standard/LowerCingulum_1mm.nii.gz \\         
        ${parentDirectory}/FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz  \\ 
        ${parentDirectory}/${DIFF}_individ/${subj}/stats/${subj}_masked_${DIFF}skel -a \\ 
@@ -334,6 +334,7 @@ do
 done
 
 ```
+**Important note:** There was a discrepancy in previous versions of the script where the input `-i` into the `$FSLDIR/bin/tbss_skeleton` skeleton command was `${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA.nii.gz.` To remain consistent with the FA projections, we've changed this to `./FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz` in the code above.
 
 Now you should have your diffusivity skeletons!
 - Check to make sure all skeletons cover the identical set of voxels, for example:
