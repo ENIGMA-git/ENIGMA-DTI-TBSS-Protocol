@@ -248,3 +248,34 @@ Make sure you have already performed the FA analyses here:
 - [Protocol for TBSS analysis using the ENIGMA-DTI template](#protocol-for-tbss-analysis-using-the-enigma-dti-template)
 and
 - [Protocol for ROI analysis using the ENIGMA-DTI template](#protocol-for-roi-analysis-using-the-enigma-dti-template)
+
+## Instructions
+
+1. Setup 
+    - From the previous TBSS protocol (linked above), we will assume the parent directory is: `/enigmaDTI/TBSS/run_tbss/`,
+which we will define this through the variable parentDirectory but you should modify this according to where your images are stored.
+
+    Also as before, we will assume your ENIGMA template files are:
+
+        /enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA.nii.gz
+        /enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_mask.nii.gz
+        /enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_skeleton.nii.gz
+        /enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_skeleton_mask.nii.gz
+        /enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_skeleton_mask_dst.nii.gz
+        
+    *Note: if you had to re-mask the template your paths will be to the edited versions, so remember to use these instead!*
+    
+        /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA.nii.gz
+        /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz
+        /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton.nii.gz
+        /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask.nii.gz
+        /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask_dst.nii.gz
+        
+2. Copy all necessary diffusivity images (from TBSS’s DTIFIT, for example) into designated directories in your run_tbss/ folder.
+
+    - We will assume your diffusivity files are located in dtifit_folder but make sure to correct this to reflect your naming convention
+    - Mean and axial diffusivities are output as part of DTIFIT, but here we will compute the radial diffusivity as a mean of the second and third eigenvalue images.
+    - The following is written in a loop so all subjects run in series, however this can be parallelized
+    - Use the latest FSL version 5.0.7 if you have it, but the same code will work for older versions as well.
+        
+
