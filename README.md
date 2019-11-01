@@ -346,10 +346,51 @@ ${FSLDIR}/bin/fslview  ${parentDirectory}/MD_individ/${subj}/stats/subj_1_masked
      ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_skeleton.nii.gz
 ```
 
-     
+Now we can extract ROI measures from these skeletons! Remember you have already done this with FA. Refer to steps 3-6 in [this section](#protocol-for-roi-analysis-using-the-enigma-dti-template).
 
+Below, the runDirectory represents the directory where all your downloaded scripts and codes are located.
 
-
-
-
+```
+parentDirectory=/enigmaDTI/TBSS/run_tbss/
+runDirectory=/enigmaDTI/TBSS/run_tbss/
+ 
+for DIFF in MD AD RD
+do
+   mkdir ${parentDirectory}/${DIFF}_individ/${DIFF}_ENIGMA_ROI_part1
+   dirO1=${parentDirectory}/${DIFF}_individ/${DIFF}_ENIGMA_ROI_part1/
+ 
+   mkdir ${parentDirectory}/${DIFF}_individ/${DIFF}_ENIGMA_ROI_part2
+   dirO2=${parentDirectory}/${DIFF}_individ/${DIFF}_ENIGMA_ROI_part2/
+ 
+   for subject in subj_1 subj_2 … subj_N
+     do
+ 
+     ${runDirectory}/singleSubjROI_exe ${runDirectory}/ENIGMA_look_up_table.txt \\ 
+         ${runDirectory}/mean_FA_skeleton.nii.gz ${runDirectory}/JHU-WhiteMatter-labels-1mm.nii.gz \\ 
+         ${dirO1}/${subject}_${DIFF}_ROIout ${parentDirectory}/${DIFF}_individ/${subject}/stats/${subject}_masked_${DIFF}skel.nii.gz
+ 
+     ${runDirectory}/averageSubjectTracts_exe ${dirO1}/${subject}_${DIFF}_ROIout.csv ${dirO2}/${subject}_${DIFF}_ROIout_avg.csv
+ 
+# can create subject list here for part 3!
+     echo ${subject},${dirO2}/${subject}_${DIFF}_ROIout_avg.csv >> ${parentDirectory}/${DIFF}_individ/subjectList_${DIFF}.csv
+   done
+ 
+   Table=${parentDirectory}/ROIextraction_info/ALL_Subject_Info.txt 
+   subjectIDcol=subjectID
+   subjectList=${parentDirectory}/${DIFF}_individ/subjectList_${DIFF}.csv
+   outTable=${parentDirectory}/${DIFF}_individ/combinedROItable_${DIFF}.csv
+   Ncov=3  #2 if no disease
+   covariates="Age;Sex;Diagnosis" # Just "Age;Sex" if no disease
+   Nroi="all" 
+   rois="all"
+ 
+#location of R binary 
+  Rbin=/usr/local/R-2.9.2_64bit/bin/R
+ 
+#Run the R code
+  ${Rbin} --no-save --slave --args ${Table} ${subjectIDcol} ${subjectList} ${outTable} \\ 
+         ${Ncov} ${covariates} ${Nroi} ${rois} < ${runDirectory}/combine_subject_tables.R
+done
+```
+Congrats! Now you should have all of your subjects ROIs in one spreadsheet per diffusivity measure with only relevant covariates ready for association testing!
 
