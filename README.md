@@ -36,7 +36,7 @@ This will create a ./FA folder with all subjects eroded images and place all ori
 
 4. Register all subjects to template. Can choose registration method that works best for your data (_as a default use TBSS_)
 
-        tbss_2_reg –t ENIGMA_DTI_FA.nii.gz
+        tbss_2_reg -t ENIGMA_DTI_FA.nii.gz
         tbss_3_postreg -S
         
 Make sure to QC images to ensure good registration! ***if any maps are poorly registered, move them to another folder
