@@ -41,7 +41,7 @@ This will create a ./FA folder with all subjects eroded images and place all ori
         
 Make sure to QC images to ensure good registration! ***if any maps are poorly registered, move them to another folder
 
-        mkdir /enigmaDTI/TBSS/run_tbss/BAD_ REGISTER/
+        mkdir /enigmaDTI/TBSS/run_tbss/BAD_REGISTER/
         mv FA_didnt_pass_QC* /enigmaDTI/TBSS/run_tbss/BAD_REGISTER/
         
 **NOTE:** If your field of view is different from the ENIGMA template – (example, you are missing some cerebellum/temporal lobe from your FOV) or you find that the ENIGMA mask is somewhat larger than your images, please follow Steps 5 and 6 to remask and recreate the distance map. Otherwise, continue to use the distance map provided
@@ -93,7 +93,7 @@ Your folder should now contain at least:
 
 **NOTE:** For the following steps, if you use the ENIGMA mask and distance map as provided, in the commands for steps 7 and 8 replace: 
 
-`/enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz` with `/enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA.nii.gz` 
+`/enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz` with `/enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_mask.nii.gz` 
 
 and `/enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask_dst` with `/enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_skeleton_mask_dst`
 
