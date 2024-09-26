@@ -1,16 +1,17 @@
-### Table of Contents
+# Table of Contents
 - [Protocol for TBSS analysis using the ENIGMA-DTI template](#protocol-for-tbss-analysis-using-the-enigma-dti-template)
 - [Protocol for ROI analysis using the ENIGMA-DTI template](#protocol-for-roi-analysis-using-the-enigma-dti-template)
 - [Protocol for applying TBSS skeletonizations from FA analysis to diffusivity and obtaining ROI measures using the ENIGMA-DTI template](#protocol-for-applying-tbss-skeletonizations-from-fa-analysis-to-diffusivity-and-obtaining-roi-measures-using-the-enigma-dti-template)
+- [Wrapper script](#wrapper-script)
 
 
-# Protocol for TBSS analysis using the ENIGMA-DTI template
+## Protocol for TBSS analysis using the ENIGMA-DTI template
 ##### (Last update April 2014)
 
 Neda Jahanshad, Emma Sprooten, Peter Kochunov
 neda.jahanshad@ini.usc.edu, emma.sprooten@yale.edu
 
-The following steps will allow you to register and skeletonize your FA images to the DTI atlas being used for ENIGMA-DTI for tract-based spatial statistics (TBSS; Smith et al., 2006).
+The following steps will allow you to register and skeletonize your FA images to the DTI atlas being used for ENIGMA-DTI for tract-based spatial statistics (TBSS; Smith et al., 2006). A wrapper script is also made available at the bottom of this page.
 
 Here we assume preprocessing steps including motion/Eddy current correction, masking, tensor calculation, and creation of FA maps has already been performed, along with quality control.
 
@@ -131,7 +132,7 @@ All your skeletons are:
 
         /enigmaDTI/TBSS/run_tbss/FA_individ/${subj}/stats/${subj}_masked_FAskel.nii.gz
         
-# Protocol for ROI analysis using the ENIGMA-DTI template
+## Protocol for ROI analysis using the ENIGMA-DTI template
 Neda Jahanshad, Rene Mandl, Peter Kochunov
 neda.jahanshad@ini.usc.edu
 
@@ -156,7 +157,7 @@ The following steps will allow you to extract relevant ROI information from the 
    
 * An example is provided - ALL_Subject_Info.txt
 
-## Instructions
+### Instructions
 
 1. Download and install [R](http://cran.r-project.org/)
 2. Download a copy of the scripts and executables from the folder titled [ROIextraction_info](ROIextraction_info)
@@ -238,7 +239,7 @@ Congrats! Now you should have all of your subjects ROIs in one spreadsheet with 
  
  
  
-# Protocol for applying TBSS skeletonizations from FA analysis to diffusivity and obtaining ROI measures using the ENIGMA-DTI template
+## Protocol for applying TBSS skeletonizations from FA analysis to diffusivity and obtaining ROI measures using the ENIGMA-DTI template
 
 The following steps will allow you to skeletonize diffusivity measures including mean, axial and radial diffusivity (denoted by MD, L1, and RD respectively) and extract relevant ROI information from them according to the ENIGMA-DTI template, and keep track of them in a spreadsheet.
 
@@ -249,7 +250,7 @@ Make sure you have already performed the FA analyses here:
 and
 - [Protocol for ROI analysis using the ENIGMA-DTI template](#protocol-for-roi-analysis-using-the-enigma-dti-template)
 
-## Instructions
+### Instructions
 
 1. Setup 
     - From the previous TBSS protocol (linked above), we will assume the parent directory is: `/enigmaDTI/TBSS/run_tbss/`,
@@ -395,3 +396,6 @@ done
 ```
 Congrats! Now you should have all of your subjects ROIs in one spreadsheet per diffusivity measure with only relevant covariates ready for association testing!
 
+## Wrapper script
+
+A wrapper script is also made available [here](https://github.com/lizhaddad/ENIGMA-DTI-TBSS-Wrapper).
