@@ -13,7 +13,7 @@ neda.jahanshad@ini.usc.edu, emma.sprooten@yale.edu
 
 The following steps will allow you to register and skeletonize your FA images to the DTI atlas being used for ENIGMA-DTI for tract-based spatial statistics (TBSS; Smith et al., 2006). A wrapper script is also made available at the bottom of this page.
 
-Here we assume preprocessing steps including motion/Eddy current correction, masking, tensor calculation, and creation of FA maps has already been performed, along with quality control.
+Here we assume preprocessing steps including motion/Eddy current correction, masking, tensor calculation, and creation of FA maps has already been performed, along with quality control. A QC protocol for vector alignment is made available in this repository [here](vector_QC/).
 
 Further instructions for using FSL, particularly TBSS can be found on the website: https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/TBSS
 
@@ -25,36 +25,36 @@ Further instructions for using FSL, particularly TBSS can be found on the websit
     - ENIGMA_DTI_FA_skeleton_mask_dst.nii.gz
 
 2. Copy all FA images into a folder
-            
+
         cp /subject*_folder/subject*_FA.nii.gz /enigmaDTI/TBSS/run_tbss/
 
 3. cd into directory and erode images slightly with FSL
-        
+
         cd /enigmaDTI/TBSS/run_tbss/
         tbss_1_preproc *.nii.gz
-        
+
 This will create a ./FA folder with all subjects eroded images and place all original ones in a ./origdata folder
 
 4. Register all subjects to template. Can choose registration method that works best for your data (_as a default use TBSS_)
 
         tbss_2_reg -t ENIGMA_DTI_FA.nii.gz
         tbss_3_postreg -S
-        
+
 Make sure to QC images to ensure good registration! ***if any maps are poorly registered, move them to another folder
 
         mkdir /enigmaDTI/TBSS/run_tbss/BAD_REGISTER/
         mv FA_didnt_pass_QC* /enigmaDTI/TBSS/run_tbss/BAD_REGISTER/
-        
+
 **NOTE:** If your field of view is different from the ENIGMA template – (example, you are missing some cerebellum/temporal lobe from your FOV) or you find that the ENIGMA mask is somewhat larger than your images, please follow Steps 5 and 6 to remask and recreate the distance map. Otherwise, continue to use the distance map provided
 
 5. Make a new directory for your edited version:
 
          mkdir /enigmaDTI/TBSS/ENIGMA_targets_edited/
-        
+
 Create a common mask for the specific study and save as:
 
          /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz
-    
+
 One option to create a common mask for your study (in ENIGMA space) is to combine all well registered images and see where most subjects (here 90%) have brain tissue using FSL tools and commands:
 
         cd /enigmaDTI/TBSS/run_tbss/
@@ -73,11 +73,11 @@ Your folder should now contain:
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA.nii.gz
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton.nii.gz
-        
+
 6. cd into directory where you have newly masked ENIGMA target and skeleton to create a distance map
 
         tbss_4_prestats -0.049
-        
+
 The distance map will be created but the function will return an error because the all_FA is not included here. This is ok! The skeleton has already been thresholded here so we do not need to select a higher FA value (ex 0.2) to threshold.
 
 It will output:
@@ -92,9 +92,9 @@ Your folder should now contain at least:
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask.nii.gz
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask_dst.nii.gz
 
-**NOTE:** For the following steps, if you use the ENIGMA mask and distance map as provided, in the commands for steps 7 and 8 replace: 
+**NOTE:** For the following steps, if you use the ENIGMA mask and distance map as provided, in the commands for steps 7 and 8 replace:
 
-`/enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz` with `/enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_mask.nii.gz` 
+`/enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz` with `/enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_mask.nii.gz`
 
 and `/enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask_dst` with `/enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_skeleton_mask_dst`
 
@@ -102,20 +102,20 @@ and `/enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask_dst` with `/eni
 7. For faster processing or parallelization, it is helpful to run the projection on one subject at a time. Move each subject FA image into its own directory and (if masking was necessary as in steps 5 and 6 above) mask with common mask. This can be parallelized on a multiprocessor system if needed.
 
         cd /enigmaDTI/TBSS/run_tbss/
-        
+
         for subj in subj_1 subj_2 … subj_N
         do
-        
+
         mkdir -p ./FA_individ/${subj}/stats/
         mkdir -p ./FA_individ/${subj}/FA/
-        
+
         cp ./FA/${subj}_*.nii.gz ./FA_individ/${subj}/FA/
-        
+
         ####[optional/recommended]####
         ${FSLPATH}/fslmaths ./FA_individ/${subj}/FA/${subj}_*FA_to_target.nii.gz -mas /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz ./FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz
-        
+
         done
-        
+
 8. Skeletonize images by projecting the ENIGMA skeleton onto them:
 
         cd /enigmaDTI/TBSS/run_tbss/
@@ -125,13 +125,13 @@ and `/enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask_dst` with `/eni
         ${FSLPATH}/tbss_skeleton -i ./FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz -p 0.049 /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask_dst ${FSLPATH}/data/standard/LowerCingulum_1mm.nii.gz ./FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz ./FA_individ/${subj}/stats/${subj}_masked_FAskel.nii.gz -s /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask.nii.gz
 
         done
-        
+
 Congrats! Now you have all your images in the ENIGMA-DTI space with corresponding projections.
 
 All your skeletons are:
 
         /enigmaDTI/TBSS/run_tbss/FA_individ/${subj}/stats/${subj}_masked_FAskel.nii.gz
-        
+
 ## Protocol for ROI analysis using the ENIGMA-DTI template
 Neda Jahanshad, Rene Mandl, Peter Kochunov
 neda.jahanshad@ini.usc.edu
@@ -141,12 +141,12 @@ The following steps will allow you to extract relevant ROI information from the 
 * Ex) MetaDataSpreadsheetFile.csv :
 * The following is an example of a data spreadsheet with all variables of interest. This spreadsheet is something you may already have to keep track of all subject information. It will be used later to extract only information of interest in Step 6
 
-     
+
    |  subjectID    |   Age     | Diagnosis  |   Sex   |   ...   |
    | ------------- |:---------:|-----------:|:-------:|:-------:|
    |    USC_01     |    23     |      1     |    1    |   ...   |
    |    USC_02     |    45     |      1     |    2    |   ...   |
-   |    USC_03     |    56     |      1     |    1    |   ...   | 
+   |    USC_03     |    56     |      1     |    1    |   ...   |
    |    USC_04     |    27     |      1     |    1    |   ...   |
    |    USC_05     |    21     |      1     |    1    |   ...   |
    |    USC_06     |    44     |      2     |    2    |   ...   |
@@ -154,7 +154,7 @@ The following steps will allow you to extract relevant ROI information from the 
    |    USC_08     |    31     |      1     |    2    |   ...   |
    |    USC_09     |    50     |      1     |    1    |   ...   |
    |    USC_10     |    29     |      1     |    2    |   ...   |
-   
+
 * An example is provided - ALL_Subject_Info.txt
 
 ### Instructions
@@ -171,7 +171,7 @@ The downloaded archive will have the following files:
  * [average_subj_tract_info.cpp](ROIextraction_info/average_subj_tract_info.cpp)
  * [**run_combineSubjectROI_script.sh**](ROIextraction_info/run_combineSubjectROI_script.sh)
  * [combine_subject_tables.R](ROIextraction_info/combine_subject_tables.R)
- 
+
 _necessary files_
  * [ENIGMA_look_up_table.txt](ROIextraction_info/ENIGMA_look_up_table.txt)
  * [JHU-WhiteMatter-labels-1mm.nii.gz](ROIextraction_info/JHU-WhiteMatter-labels-1mm.nii.gz)
@@ -236,9 +236,9 @@ _necessary files_
 Congrats! Now you should have all of your subjects ROIs in one spreadsheet with only relevant covariates ready for association testing!
 
  ![picture](images/enigma_tbss.png)
- 
- 
- 
+
+
+
 ## Protocol for applying TBSS skeletonizations from FA analysis to diffusivity and obtaining ROI measures using the ENIGMA-DTI template
 
 The following steps will allow you to skeletonize diffusivity measures including mean, axial and radial diffusivity (denoted by MD, L1, and RD respectively) and extract relevant ROI information from them according to the ENIGMA-DTI template, and keep track of them in a spreadsheet.
@@ -252,7 +252,7 @@ and
 
 ### Instructions
 
-1. Setup 
+1. Setup
     - From the previous TBSS protocol (linked above), we will assume the parent directory is: `/enigmaDTI/TBSS/run_tbss/`,
 which we will define this through the variable parentDirectory but you should modify this according to where your images are stored.
 
@@ -263,15 +263,15 @@ which we will define this through the variable parentDirectory but you should mo
         /enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_skeleton.nii.gz
         /enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_skeleton_mask.nii.gz
         /enigmaDTI/TBSS/ENIGMA_targets/ENIGMA_DTI_FA_skeleton_mask_dst.nii.gz
-        
+
     *Note: if you had to re-mask the template your paths will be to the edited versions, so remember to use these instead!*
-    
+
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA.nii.gz
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton.nii.gz
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask.nii.gz
         /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_skeleton_mask_dst.nii.gz
-        
+
 2. Copy all necessary diffusivity images (from TBSS’s DTIFIT, for example) into designated directories in your run_tbss/ folder.
 
     - We will assume your diffusivity files are located in dtifit_folder but make sure to correct this to reflect your naming convention
@@ -281,56 +281,56 @@ which we will define this through the variable parentDirectory but you should mo
 
 ```
 FSLDIR=/usr/local/fsl-5.0.7/
- 
+
 ENIGMAtemplateDirectory=/enigmaDTI/TBSS/ENIGMA_targets/
 parentDirectory=/enigmaDTI/TBSS/run_tbss/
 dtifit_folder=/enigmaDTI/DTIFIT/
- 
+
 mkdir ${parentDirectory}/MD/
 mkdir ${parentDirectory}/AD/
 mkdir ${parentDirectory}/RD/
- 
+
 cd $parentDirectory
- 
- 
+
+
 for subj in subj_1 subj_2 … subj_N
 do
    cp ${dtifit_folder}/${subj}*_MD.nii.gz ${parentDirectory}/MD/${subj}_MD.nii.gz
    cp ${dtifit_folder}/${subj}*_L1.nii.gz ${parentDirectory}/AD/${subj}_AD.nii.gz
    $FSLDIR/bin/fslmaths ${dtifit_folder}/${subj}*_L2.nii.gz –add ${dtifit_folder}/${subj}*_L3.nii.gz \\
        -div 2 ${parentDirectory}/RD/${subj}_RD.nii.gz
- 
- 
+
+
    for DIFF in MD AD RD
    do
    mkdir -p ${parentDirectory}/${DIFF}/origdata/
    mkdir -p ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/
    mkdir -p ${parentDirectory}/${DIFF}_individ/${subj}/stats/
- 
+
    $FSLDIR/bin/fslmaths ${parentDirectory}/${DIFF}/${subj}_${DIFF}.nii.gz -mas \\
-      ${parentDirectory}/FA/${subj}_FA_FA_mask.nii.gz \\ 
+      ${parentDirectory}/FA/${subj}_FA_FA_mask.nii.gz \\
       ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF}
- 
+
    $FSLDIR/bin/immv ${parentDirectory}/${DIFF}/${subj} ${parentDirectory}/${DIFF}/origdata/
- 
-   $FSLDIR/bin/applywarp -i ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF} -o \\ 
-      ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF}_to_target -r \\ 
+
+   $FSLDIR/bin/applywarp -i ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF} -o \\
+      ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF}_to_target -r \\
       $FSLDIR/data/standard/FMRIB58_FA_1mm -w ${parentDirectory}/FA/${subj}_FA_FA_to_target_warp.nii.gz
- 
+
 ##remember to change ENIGMAtemplateDirectory if you re-masked the template
- 
+
   $FSLDIR/bin/fslmaths ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_${DIFF}_to_target -mas \\
        ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_mask.nii.gz \\
-       ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_masked_${DIFF}.nii.gz	
- 
+       ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_masked_${DIFF}.nii.gz
+
    $FSLDIR/bin/tbss_skeleton -i ./FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz -p 0.049 \\
        ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_skeleton_mask_dst.nii.gz $FSLDIR/data/standard/LowerCingulum_1mm.nii.gz \\         
-       ${parentDirectory}/FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz  \\ 
-       ${parentDirectory}/${DIFF}_individ/${subj}/stats/${subj}_masked_${DIFF}skel -a \\ 
-       ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_masked_${DIFF}.nii.gz -s \\ 
+       ${parentDirectory}/FA_individ/${subj}/FA/${subj}_masked_FA.nii.gz  \\
+       ${parentDirectory}/${DIFF}_individ/${subj}/stats/${subj}_masked_${DIFF}skel -a \\
+       ${parentDirectory}/${DIFF}_individ/${subj}/${DIFF}/${subj}_masked_${DIFF}.nii.gz -s \\
        ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_skeleton_mask.nii.gz
- 
- 
+
+
    done
 done
 
@@ -342,7 +342,7 @@ Now you should have your diffusivity skeletons!
 
 ```
 FSLDIR=/usr/local/fsl-5.0.7/
- 
+
 ${FSLDIR}/bin/fslview  ${parentDirectory}/MD_individ/${subj}/stats/subj_1_masked_MDskel.nii.gz \\
      ${parentDirectory}/FA_individ/subj_1/stats/subj_1_masked_FAskel.nii.gz \\
      ${ENIGMAtemplateDirectory}/ENIGMA_DTI_FA_skeleton.nii.gz
@@ -355,42 +355,42 @@ Below, the runDirectory represents the directory where all your downloaded scrip
 ```
 parentDirectory=/enigmaDTI/TBSS/run_tbss/
 runDirectory=/enigmaDTI/TBSS/run_tbss/
- 
+
 for DIFF in MD AD RD
 do
    mkdir ${parentDirectory}/${DIFF}_individ/${DIFF}_ENIGMA_ROI_part1
    dirO1=${parentDirectory}/${DIFF}_individ/${DIFF}_ENIGMA_ROI_part1/
- 
+
    mkdir ${parentDirectory}/${DIFF}_individ/${DIFF}_ENIGMA_ROI_part2
    dirO2=${parentDirectory}/${DIFF}_individ/${DIFF}_ENIGMA_ROI_part2/
- 
+
    for subject in subj_1 subj_2 … subj_N
      do
- 
-     ${runDirectory}/singleSubjROI_exe ${runDirectory}/ENIGMA_look_up_table.txt \\ 
-         ${runDirectory}/mean_FA_skeleton.nii.gz ${runDirectory}/JHU-WhiteMatter-labels-1mm.nii.gz \\ 
+
+     ${runDirectory}/singleSubjROI_exe ${runDirectory}/ENIGMA_look_up_table.txt \\
+         ${runDirectory}/mean_FA_skeleton.nii.gz ${runDirectory}/JHU-WhiteMatter-labels-1mm.nii.gz \\
          ${dirO1}/${subject}_${DIFF}_ROIout ${parentDirectory}/${DIFF}_individ/${subject}/stats/${subject}_masked_${DIFF}skel.nii.gz
- 
+
      ${runDirectory}/averageSubjectTracts_exe ${dirO1}/${subject}_${DIFF}_ROIout.csv ${dirO2}/${subject}_${DIFF}_ROIout_avg.csv
- 
+
 # can create subject list here for part 3!
      echo ${subject},${dirO2}/${subject}_${DIFF}_ROIout_avg.csv >> ${parentDirectory}/${DIFF}_individ/subjectList_${DIFF}.csv
    done
- 
-   Table=${parentDirectory}/ROIextraction_info/ALL_Subject_Info.txt 
+
+   Table=${parentDirectory}/ROIextraction_info/ALL_Subject_Info.txt
    subjectIDcol=subjectID
    subjectList=${parentDirectory}/${DIFF}_individ/subjectList_${DIFF}.csv
    outTable=${parentDirectory}/${DIFF}_individ/combinedROItable_${DIFF}.csv
    Ncov=3  #2 if no disease
    covariates="Age;Sex;Diagnosis" # Just "Age;Sex" if no disease
-   Nroi="all" 
+   Nroi="all"
    rois="all"
- 
-#location of R binary 
+
+#location of R binary
   Rbin=/usr/local/R-2.9.2_64bit/bin/R
- 
+
 #Run the R code
-  ${Rbin} --no-save --slave --args ${Table} ${subjectIDcol} ${subjectList} ${outTable} \\ 
+  ${Rbin} --no-save --slave --args ${Table} ${subjectIDcol} ${subjectList} ${outTable} \\
          ${Ncov} ${covariates} ${Nroi} ${rois} < ${runDirectory}/combine_subject_tables.R
 done
 ```
