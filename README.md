@@ -235,7 +235,7 @@ _necessary files_
 
 Congrats! Now you should have all of your subjects ROIs in one spreadsheet with only relevant covariates ready for association testing!
 
- ![picture](images/enigma_tbss.png)
+ ![picture](enigma_tbss.png)
 
 
 
@@ -398,4 +398,4 @@ Congrats! Now you should have all of your subjects ROIs in one spreadsheet per d
 
 ## Wrapper script
 
-A wrapper script is also made available [here](https://github.com/lizhaddad/ENIGMA-DTI-TBSS-Wrapper).
+A wrapper script is also made available [here](https://github.com/lizhaddad/ENIGMA-DTI-TBSS-Wrapper). This wrapper will run all the steps in the above ENIGMA-DTI Pipeline while providing an option for qsub systems as well.
