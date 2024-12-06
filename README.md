@@ -1,15 +1,15 @@
 # Table of Contents
 - [Protocol for TBSS analysis using the ENIGMA-DTI template](#protocol-for-tbss-analysis-using-the-enigma-dti-template)
 - [Protocol for ROI analysis using the ENIGMA-DTI template](#protocol-for-roi-analysis-using-the-enigma-dti-template)
-- [Protocol for applying TBSS skeletonizations from FA analysis to diffusivity and obtaining ROI measures using the ENIGMA-DTI template](#protocol-for-applying-tbss-skeletonizations-from-fa-analysis-to-diffusivity-and-obtaining-roi-measures-using-the-enigma-dti-template)
+- [Protocol for applying TBSS skeletonizations from FA to diffusivity measures](#protocol-for-applying-tbss-skeletonizations-from-fa-analysis-to-diffusivity-and-obtaining-roi-measures-using-the-enigma-dti-template)
 - [Wrapper script](#wrapper-script)
+- [Quality control protocols v1.0](#quality-control-protocols-v10)
 
 
-## Protocol for TBSS analysis using the ENIGMA-DTI template
-##### (Last update April 2014)
+# Protocol for TBSS analysis using the ENIGMA-DTI template
 
 Neda Jahanshad, Emma Sprooten, Peter Kochunov
-neda.jahanshad@ini.usc.edu, emma.sprooten@yale.edu
+##### (Last update April 2014)
 
 The following steps will allow you to register and skeletonize your FA images to the DTI atlas being used for ENIGMA-DTI for tract-based spatial statistics (TBSS; Smith et al., 2006). A wrapper script is also made available at the bottom of this page.
 
@@ -132,7 +132,7 @@ All your skeletons are:
 
         /enigmaDTI/TBSS/run_tbss/FA_individ/${subj}/stats/${subj}_masked_FAskel.nii.gz
 
-## Protocol for ROI analysis using the ENIGMA-DTI template
+# Protocol for ROI analysis using the ENIGMA-DTI template
 Neda Jahanshad, Rene Mandl, Peter Kochunov
 neda.jahanshad@ini.usc.edu
 
@@ -239,7 +239,7 @@ Congrats! Now you should have all of your subjects ROIs in one spreadsheet with 
 
 
 
-## Protocol for applying TBSS skeletonizations from FA analysis to diffusivity and obtaining ROI measures using the ENIGMA-DTI template
+# Protocol for applying TBSS skeletonizations from FA analysis to diffusivity and obtaining ROI measures using the ENIGMA-DTI template
 
 The following steps will allow you to skeletonize diffusivity measures including mean, axial and radial diffusivity (denoted by MD, L1, and RD respectively) and extract relevant ROI information from them according to the ENIGMA-DTI template, and keep track of them in a spreadsheet.
 
@@ -395,7 +395,300 @@ do
 done
 ```
 Congrats! Now you should have all of your subjects ROIs in one spreadsheet per diffusivity measure with only relevant covariates ready for association testing!
+<br>
 
-## Wrapper script
+# Wrapper script
 
 A wrapper script is also made available [here](https://github.com/lizhaddad/ENIGMA-DTI-TBSS-Wrapper). This wrapper will run all the steps in the above ENIGMA-DTI Pipeline while providing an option for qsub systems as well.
+
+# Quality control protocols v1.0
+
+
+
+## Protocol for FA and Skeleton Visual QC analysis for ENIGMA-DTI
+
+Neda Jahanshad, Hervé LeMaitre, Sean Hatton, Annchen Knodt
+##### (Last update September 2014)
+
+The following steps will allow you to visualize your FA images after registration to the ENIGMA-DTI template, and to see if your extracted skeletons are all projected onto the ENIGMA Skeleton. 
+
+#### Prerequisites:
+* Matlab installed (can be downloaded [here](http://www.mathworks.com/products/matlab/))
+* Diffusion-weighted images preprocessed using FSL’s [`dtifit`](https://fsl.fmrib.ox.ac.uk/fsl/docs/#/diffusion/dtifit) or equivalent.
+* Run the ENIGMA DTI processing protocol to project individual skeletons onto the common template (may be found in this [section](#protocol-for-roi-analysis-using-the-enigma-dti-template))
+
+#### Running the protocol:
+
+**Step 1:** Download the utility packages
+* Download the Matlab scripts package for Step 3 (zipped folder is located in this repository [here](tbss_qc/enigmaDTI_QC.zip))	
+* Download the script to build the QC webpage for Step 4:
+	* For Linux systems, this can be found in this repository [here](tbss_qc/make_enigmaDTI_FA_Skel_QC_webpage.sh).
+ 	* For Mac systems, this can be found  in this repository [here](tbss_qc/make_enigmaDTI_FA_Skel_QC_webpage_mac.sh).
+
+**Step 2:** Build a text file defining the location of subject files
+
+Create a three column tab-delimited text file with the following:
+* subjectID: subject ID
+* FAimage: full path to registered FA image.
+* Skeleton: full path to skeletonized FA image.
+
+For demonstration, the contents of an example text file called `Subject_Path_Info.txt` are shown below:
+
+```
+subjectID FAimage Skeleton
+USC_01 /path/USC_01_masked_FA.nii.gz /path/USC_01_masked_FAskel.nii.gz
+USC_02 /path/USC_02_masked_FA.nii.gz /path/USC_02_masked_FAskel.nii.gz
+USC_03 /path/USC_03_masked_FA.nii.gz /path/USC_03_masked_FAskel.nii.gz
+```
+
+**Step 3:** Run Matlab script to make QC images
+
+**Unzip the Matlab scripts from Step 1** and change directories to that folder with the required Matlab *.m scripts. For simplicity, we assume you are working on a Linux machine with the base directory `/enigmaDTI/QC_ENIGMA/`.
+
+Make a directory to store all of the QC output:
+
+	mkdir /enigmaDTI/QC_ENIGMA/QC_FA_SKEL/
+
+Start Matlab:
+
+	/usr/local/matlab/bin/matlab
+
+
+Next we will run the `func_QC_enigmaDTI_FA_skel.m` script that reads the `Subject_Path_Info.txt` file to create subdirectories in a specified output_directory for each individual subjectID, then create an axial, coronal and sagittal image of the FA_image with overlays from the Skeleton.
+
+
+In the Matlab command window paste and run:
+
+```
+TXTfile='/enigmaDTI/QC_ENIGMA/Subject_Path_Info.txt';
+output_directory='/enigmaDTI/QC_ENIGMA/QC_FA_SKEL/';
+[subjs,FAs,SKELs]=textread(TXTfile,'%s %s %s','headerlines',1)
+for s = 1:length(subjs)
+subj=subjs(s);
+Fa=FAs(s);
+skel=SKELs(s);
+try
+% reslice FA
+[pathstrfa,nameniifa,gzfa] = fileparts(Fa{1,1});
+[nafa,namefa,niifa] = fileparts(nameniifa);
+newnamegzfa=[pathstrfa,'/',namefa,'_reslice.nii.gz'];
+newnamefa=[pathstrfa,'/',namefa,'_reslice.nii'];
+copyfile(Fa{1,1},newnamegzfa);
+gunzip(newnamegzfa);
+delete(newnamegzfa);
+reslice_nii(newnamefa,newnamefa);
+% reslice skel
+[pathstrskel,nameniiskel,gzskel] = fileparts(skel{1,1});
+[naskel,nameskel,niiskel] = fileparts(nameniiskel);
+newnamegzskel =[pathstrskel,'/',nameskel,'_reslice.nii.gz'];
+newnameskel =[pathstrskel,'/',nameskel,'_reslice.nii'];
+copyfile(skel{1,1},newnamegzskel);
+gunzip(newnamegzskel);
+delete(newnamegzskel);
+reslice_nii(newnameskel,newnameskel);
+% qc
+func_QC_enigmaDTI_FA_skel(subj,newnamefa,newnameskel,
+output_directory);
+close(1)
+close(2)
+close(3)
+% delete
+delete(newnamefa)
+delete(newnameskel)
+end
+display(['Done with subject: ', num2str(s), ' of ',
+num2str(length(subjs))]);
+end
+```
+
+For troubleshooting individual subjects `func_QC_enigmaDTI_FA_skel.m` script can be run in the command console with the following parameters:
+
+	func_QC_enigmaDTI_FA_skel('subjectID', 'FA_image_path', 'Skel_image_path','output_directory')
+
+
+
+**Step 4:** Make the QC webpage
+
+Within a terminal session go to the `/enigmaDTI/QC_ENIGMA/` directory where you stored the script `make_enigmaDTI_FA_Skel_QC_webpage.sh` and ensure it is executable:
+
+	chmod 777 make_enigmaDTI_FA_Skel_QC_webpage.sh
+
+ or for Mac:
+
+ 	chmod 777 make_enigmaDTI_FA_Skel_QC_webpage_mac.sh
+
+
+Run the script, specifying the full path to the directory where you stored the Matlab QC output files:
+
+	./make_enigmaDTI_FA_Skel_QC_webpage.sh /enigmaDTI/QC_ENIGMA/QC_FA_SKEL/
+
+  or for Mac:
+
+  	sh make_enigmaDTI_FA_Skel_QC_webpage_mac.sh /enigmaDTI/QC_ENIGMA/QC_FA_SKEL/
+
+This script will create a webpage called **enigmaDTI_FA_Skel_QC.html** in the same folder as your QC output. To open the webpage in a browser in a Linux environment type:
+
+	firefox /enigmaDTI/QC_ENIGMA/QC_FA_SKEL/enigmaDTI_FA_Skel_QC.html
+
+Scroll through each set of images to check that the images are all aligned and well registered and all skeletons are composed of the same voxels. For closer inspection, clicking on a subject’s preview image will provide a larger image. If you want to check the segmentation on another  computer, you can just copy over the whole `/enigmaDTI/QC_ENIGMA/QC_FA_SKEL/` output folder to your computer and open the webpage from there. 
+
+Congrats! Now you should have all you need to make sure your FA images turned out OK and their skeletons line up!
+
+<br>
+
+## Checking mean and max projection distances
+
+Emma Sprooten
+
+Use this script after skeletonizing your FA images to check the mean and max projection distances to the skeleton:
+
+```
+#!/bin/sh
+# Emma Sprooten for ENIGMA-DTI
+# run in a new directory eg. Proj_Dist/
+# create a text file containing paths to your masked FA maps
+# output in Proj_Dist.txt
+
+# make sure you have FSL5!!!
+
+###### USER INPUTS ###############
+## insert main folder where you ran TBSS
+## just above "stats/" and "FA/"
+maindir="/enigmaDTI/TBSS/run_tbss/"
+list=`find $maindir -wholename "*/FA/*_masked_FA.nii.gz"`
+
+## insert full path to mean_FA, skeleton mask and distance map
+## based on ENIGMA-DTI protocol this should be:
+mean_FA="/enigmaDTI/TBSS/ENIGMA_targets/mean_FA_MyMasked.nii.gz"
+mask="/enigmaDTI/TBSS/ENIGMA_targets/mean_FA_skeleton_MyMasked.nii.gz"
+dst_map="/enigmaDTI/TBSS/ENIGMA_targets/enigma_skeleton_mask_dst.nii.gz"
+
+##############
+### from here it should be working without further adjustments
+
+rm Proj_Dist.txt
+echo "ID" "Mean_Squared" "Max_Squared" >> Proj_Dist.txt
+
+
+## for each FA map
+    for FAmap in ${list}   
+    do
+	base=`echo $FAmap | awk 'BEGIN {FS="/"}; {print $NF}' | awk 'BEGIN {FS="_"}; {print $1}'`
+        dst_out="dst_vals_"$base""
+
+	# get Proj Dist images
+        tbss_skeleton -d -i $mean_FA -p 0.2 $dst_map $FSLDIR/data/standard/LowerCingulum_1mm $FAmap $dst_out
+
+	#X direction
+	Xout=""squared_X_"$base"
+	file=""$dst_out"_search_X.nii.gz"
+	fslmaths $file -mul $file $Xout
+
+	#Y direction
+	Yout=""squared_Y_"$base"
+	file=""$dst_out"_search_Y.nii.gz"
+	fslmaths $file -mul $file $Yout
+
+	#Z direction
+        Zout=""squared_Z_"$base"
+        file=""$dst_out"_search_Z.nii.gz"
+	fslmaths $file -mul $file $Zout
+
+	#Overall displacement
+	Tout="Total_ProjDist_"$base""
+	fslmaths $Xout -add $Yout -add $Zout $Tout
+
+	# store extracted distances
+	mean=`fslstats -t $Tout -k $mask -m`  
+	max=`fslstats -t $Tout -R | awk '{print $2}'`
+        echo "$base $mean $max" >> Proj_Dist.txt
+
+        # remove X Y Z images
+        ## comment out for debugging
+        rm ./dst_vals_*.nii.gz
+        rm ./squared_*.nii.gz
+
+	echo "file $Tout done"
+    done
+```
+
+<br>
+
+
+## Protocol for Creating Histograms and Summary Stats
+
+Neda Jahanshad, Derrek Hibar
+##### (Last update February 2014)
+
+The following steps will allow you to visualize your final FA distribution in each ROI in the form of a histogram and will output a text file with summary statistics on each ROI including the mean, standard deviation, min and max value, as well as the subjects corresponding to the min and max values.
+
+This section assumes that you have installed:
+* R (download [here](https://cran.r-project.org/))
+* Download the automated script for generating the plots located in this repository [here](tbss_qc/ENIGMA_DTI_plots_ALL.R).
+
+After having quality checked each of your segmented structures you should have a file called 
+combinedROItable.csv from this [section](#protocol-for-roi-analysis-using-the-enigma-dti-template), which is a comma separated file with the mean FA of each ROI for each subject.
+
+It should look like this:
+
+
+|  subjectID    |   Age     | Diagnosis |   Sex   |   ACR   |   ACR-L  |   ACR-R  |  ALIC |  ALIC-L |  ALIC-R |  AverageFA |  ... |
+| ------------- |:---------:|-----------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+|    USC_01     |    23     |      1     |    1    |  0.358   |  0.361   |  0.355   |  0.423   |  0.423   |  0.423   |  0.339   |   ...   |
+|    USC_02     |    45     |      1     |    2    |  0.458   |  0.474   |  0.441   |  0.554   |  0.581   |  0.531   |  0.380   |   ...   |
+|    USC_03     |    56     |      1     |    1    |  0.460   |  0.463   |  0.456   |  0.519   |  0.507   |  0.529   |  0.404   |   ...   |
+|    USC_04     |    27     |      1     |    1    |  0.431   |  0.439   |  0.424   |  0.539   |  0.558   |  0.523   |  0.418   |   ...   |
+|    USC_05     |    21     |      1     |    1    |  0.411   |  0.428   |  0.393   |  0.519   |  0.539   |  0.502   |  0.396   |   ...   |
+|    USC_06     |    44     |      2     |    2    |  0.419   |  0.421   |  0.417   |  0.523   |  0.533   |  0.514   |  0.364   |   ...   |
+|    USC_07     |    35     |      1     |    1    |  0.469   |  0.468   |  0.470   |  0.628   |  0.632   |  0.624   |  0.420   |   ...   |
+|    USC_08     |    31     |      1     |    2    |  0.435   |  0.436   |  0.435   |  0.527   |  0.536   |  0.519   |  0.393   |   ...   |
+|    USC_09     |    50     |      1     |    1    |  0.453   |  0.463   |  0.442   |  0.541   |  0.545   |  0.538   |  0.381   |   ...   |
+|    USC_10     |    29     |      1     |    2    |  0.489   |  0.497   |  0.480   |  0.763   |  0.777   |  0.750   |  0.541   |   ...   |
+
+**NOTE:** There should be 64 + however many covariates of interest columns (indicated by the `...`).
+
+### Generating plots and summary statistics:
+
+Make a new directory to store necessary files:
+
+    mkdir /enigmaDTI/figures/
+
+Copy your combinedROItable.csv file to your new folder:
+
+    cp /enigmaDTI/combinedROItable.csv /enigmaDTI/figures/
+
+Move the ENIGMA_DTI_plots.R script to the same folder:
+
+    mv /enigmaDTI/downloads/ENIGMA_DTI_plots.R /enigmaDTI/figures/
+
+Make sure you are in your new figures folder:
+
+    cd /enigmaDTI/figures
+
+The code will make a new directory to store all of your summary stats and histogram plots:
+
+    /enigmaDTI/figures/QC_ENIGMA
+
+**NOTE:** You may have to make changes to paths in the above commands (slash orientation) so that they work on your system and data.
+
+<br>
+
+Next, run the R script to generate the plots, make sure to enter your cohort name so it shows up on all plots:
+
+```
+cohort= 'MyCohort'
+R --no-save --slave --args ${cohort} < ENIGMA_DTI_plots_ALL.R
+```
+
+It should only take a few minutes to generate all of the plots. If you get errors, the script might tell you what things need to be changed in your data file in order to work properly. Just make sure that your input file is in *.csv format similar to the file above.
+
+The output will be a pdf file with a series of histograms. You need to go through each page to make sure that your histograms look approximately normal. If there appear to be any outliers, please verify your  original FA image is appropriate. If you end up deciding that certain subjects are have poor quality scans then you should give that subject an “NA” for all ROIs in your combinedROItable.csv file and then re-run the [ENIGMA_DTI_plots_ALL.R script](tbss_qc/ENIGMA_DTI_plots_ALL.R). 
+
+**Please upload the ENIGMA_DTI_allROI_histograms.pdf and the ENIGMA_DTI_allROI_stats.txt files to the ENIGMA DTI Support or Working Group.**
+
+<br>
+
+
+# Quality control protocols v2.0
+
+Coming soon...
