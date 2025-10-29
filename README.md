@@ -2,8 +2,8 @@
 - [Protocol for TBSS analysis using the ENIGMA-DTI template](#protocol-for-tbss-analysis-using-the-enigma-dti-template)
 - [Protocol for ROI analysis using the ENIGMA-DTI template](#protocol-for-roi-analysis-using-the-enigma-dti-template)
 - [Protocol for applying TBSS skeletonizations from FA to diffusivity measures](#protocol-for-applying-tbss-skeletonizations-from-fa-analysis-to-diffusivity-and-obtaining-roi-measures-using-the-enigma-dti-template)
-- [Wrapper script](#wrapper-script)
-- [Quality control protocols v1.0](#quality-control-protocols-v10)
+- [Quality control protocols](#quality-control-protocols)
+- [Additional QC tools](#additional-qc-tools)
 
 
 # Protocol for TBSS analysis using the ENIGMA-DTI template
@@ -61,6 +61,12 @@ One option to create a common mask for your study (in ENIGMA space) is to combin
 
         ${FSLPATH}/fslmerge –t ./all_FA_QC ./FA/*FA_to_target.nii.gz
         ${FSLPATH}/fslmaths ./all_FA_QC -bin -Tmean –thr 0.9 /enigmaDTI/TBSS/ENIGMA_targets_edited/mean_FA_mask.nii.gz
+
+**NOTE:** This is another opportunity to QC your images at this stage! `./all_FA_QC.nii.gz` is a 4D nifti file comprised of each subject’s registered FA. View `./all_FA_QC.nii.gz` in movie mode in `fslview` or `fsleyes` to easily spot misregistrations or large deviations between volumes (i.e. subjects).
+
+<p align="center">
+<img src="tbss_qc/moviemode_QC_35speed.gif" width="80%"">
+</p>
 
 Mask and rename ENIGMA_DTI templates to get new files for running TBSS:
 
@@ -235,9 +241,9 @@ _necessary files_
 
 Congrats! Now you should have all of your subjects ROIs in one spreadsheet with only relevant covariates ready for association testing!
 
- ![picture](enigma_tbss.png)
-
-
+<p align="center">
+<img src="enigma_tbss.png" width="80%"">
+</p>
 
 # Protocol for applying TBSS skeletonizations from FA analysis to diffusivity and obtaining ROI measures using the ENIGMA-DTI template
 
@@ -401,7 +407,7 @@ Congrats! Now you should have all of your subjects ROIs in one spreadsheet per d
 
 A wrapper script is also made available [here](https://github.com/lizhaddad/ENIGMA-DTI-TBSS-Wrapper). This wrapper will run all the steps in the above ENIGMA-DTI Pipeline while providing an option for qsub systems as well.
 
-# Quality control protocols v1.0
+# Quality control protocols
 
 
 
@@ -530,87 +536,13 @@ This script will create a webpage called **enigmaDTI_FA_Skel_QC.html** in the sa
 
 	firefox /enigmaDTI/QC_ENIGMA/QC_FA_SKEL/enigmaDTI_FA_Skel_QC.html
 
-Scroll through each set of images to check that the images are all aligned and well registered and all skeletons are composed of the same voxels. For closer inspection, clicking on a subject’s preview image will provide a larger image. If you want to check the segmentation on another  computer, you can just copy over the whole `/enigmaDTI/QC_ENIGMA/QC_FA_SKEL/` output folder to your computer and open the webpage from there. 
+<p align="center">
+<img src="tbss_qc/example_visualQC_main.png" width="80%"">
+</p>
+
+Scroll through each set of images to check the images for poor scan quality and major artifacts, misregistration, or severe pathology. For closer inspection, clicking on a subject’s preview image will provide a larger image. If you want to check the segmentation on another  computer, you can just copy over the whole `/enigmaDTI/QC_ENIGMA/QC_FA_SKEL/` output folder to your computer and open the webpage from there. 
 
 Congrats! Now you should have all you need to make sure your FA images turned out OK and their skeletons line up!
-
-<br>
-
-## Checking mean and max projection distances
-
-Emma Sprooten
-
-Use this script after skeletonizing your FA images to check the mean and max projection distances to the skeleton:
-
-```
-#!/bin/sh
-# Emma Sprooten for ENIGMA-DTI
-# run in a new directory eg. Proj_Dist/
-# create a text file containing paths to your masked FA maps
-# output in Proj_Dist.txt
-
-# make sure you have FSL5!!!
-
-###### USER INPUTS ###############
-## insert main folder where you ran TBSS
-## just above "stats/" and "FA/"
-maindir="/enigmaDTI/TBSS/run_tbss/"
-list=`find $maindir -wholename "*/FA/*_masked_FA.nii.gz"`
-
-## insert full path to mean_FA, skeleton mask and distance map
-## based on ENIGMA-DTI protocol this should be:
-mean_FA="/enigmaDTI/TBSS/ENIGMA_targets/mean_FA_MyMasked.nii.gz"
-mask="/enigmaDTI/TBSS/ENIGMA_targets/mean_FA_skeleton_MyMasked.nii.gz"
-dst_map="/enigmaDTI/TBSS/ENIGMA_targets/enigma_skeleton_mask_dst.nii.gz"
-
-##############
-### from here it should be working without further adjustments
-
-rm Proj_Dist.txt
-echo "ID" "Mean_Squared" "Max_Squared" >> Proj_Dist.txt
-
-
-## for each FA map
-    for FAmap in ${list}   
-    do
-	base=`echo $FAmap | awk 'BEGIN {FS="/"}; {print $NF}' | awk 'BEGIN {FS="_"}; {print $1}'`
-        dst_out="dst_vals_"$base""
-
-	# get Proj Dist images
-        tbss_skeleton -d -i $mean_FA -p 0.2 $dst_map $FSLDIR/data/standard/LowerCingulum_1mm $FAmap $dst_out
-
-	#X direction
-	Xout=""squared_X_"$base"
-	file=""$dst_out"_search_X.nii.gz"
-	fslmaths $file -mul $file $Xout
-
-	#Y direction
-	Yout=""squared_Y_"$base"
-	file=""$dst_out"_search_Y.nii.gz"
-	fslmaths $file -mul $file $Yout
-
-	#Z direction
-        Zout=""squared_Z_"$base"
-        file=""$dst_out"_search_Z.nii.gz"
-	fslmaths $file -mul $file $Zout
-
-	#Overall displacement
-	Tout="Total_ProjDist_"$base""
-	fslmaths $Xout -add $Yout -add $Zout $Tout
-
-	# store extracted distances
-	mean=`fslstats -t $Tout -k $mask -m`  
-	max=`fslstats -t $Tout -R | awk '{print $2}'`
-        echo "$base $mean $max" >> Proj_Dist.txt
-
-        # remove X Y Z images
-        ## comment out for debugging
-        rm ./dst_vals_*.nii.gz
-        rm ./squared_*.nii.gz
-
-	echo "file $Tout done"
-    done
-```
 
 <br>
 
@@ -688,7 +620,10 @@ The output will be a pdf file with a series of histograms. You need to go throug
 
 <br>
 
+# Additional QC tools
 
-# Quality control protocols v2.0
+We offer additional QC tools in [this submodule](https://github.com/lizhaddad/eDTI_additional_QC.git) that may be used in conjunction with tools offered [above](#quality-control-protocols). In brief, these include:
 
-Coming soon...
+1. **Statistical QC**: In this section, we provide a package to help to identify outliers at the statistical level. Subjects are flagged based on various criteria including number of DTI ROI measures that fall outside various %iles. We recommend that this package be used to flag subjects for further visual inspection and not to automatically exclude data. Data can be visualized using the main tools described [above](#quality-control-protocols) or by using the additional tools from this submodule.  
+
+2. **Visual QC**: In this section, we provide an optional script that outputs a series of PNG images that may help to visually inspect problematic scans and/or registrations identified as outliers. These include images of: FA registrations to the ENIGMA template, FA values projected onto the ENIGMA template skeleton, and the diffusion scalar maps warped to the ENIGMA template.
