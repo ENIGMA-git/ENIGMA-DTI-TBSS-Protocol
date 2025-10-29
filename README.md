@@ -65,7 +65,7 @@ One option to create a common mask for your study (in ENIGMA space) is to combin
 **NOTE:** This is another opportunity to QC your images at this stage! `./all_FA_QC.nii.gz` is a 4D nifti file comprised of each subject’s registered FA. View `./all_FA_QC.nii.gz` in movie mode in `fslview` or `fsleyes` to easily spot misregistrations or large deviations between volumes (i.e. subjects).
 
 <p align="center">
-<img src="tbss_qc/moviemode_QC_35speed.gif" width="80%"">
+<img src="tbss_qc/moviemode_QC_40speed.gif" width="80%"">
 </p>
 
 Mask and rename ENIGMA_DTI templates to get new files for running TBSS:
