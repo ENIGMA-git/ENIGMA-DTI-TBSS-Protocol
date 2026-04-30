@@ -239,6 +239,12 @@ _necessary files_
                 * these ROI names should be separated by a semi-colon ‘;’ and no spaces for example if Nroi=2, rois="IC;EC" to get only information for the internal and external capsules into the output .csv file   
     * (see **combinedROItable.csv** for example output)
 
+**Note**: We suggest renaming your resulting `combinedROItable.csv` to `combinedROItable_FA.csv` to ensure consistency with the other measures extracted below. You can use the following command to do so:
+
+```
+mv combinedROItable.csv combinedROItable_FA.csv
+```
+
 Congrats! Now you should have all of your subjects ROIs in one spreadsheet with only relevant covariates ready for association testing!
 
 <p align="center">
@@ -549,19 +555,28 @@ Congrats! Now you should have all you need to make sure your FA images turned ou
 
 ## Protocol for Creating Histograms and Summary Stats
 
-Neda Jahanshad, Derrek Hibar
-##### (Last update February 2014)
+Aarya Vakharia, Talia M. Nir, Elizabeth Haddad, Neda Jahanshad
+##### (Last update April 2026; based on 2014 scripts by Derrek Hibar)
 
-The following steps will allow you to visualize your final FA distribution in each ROI in the form of a histogram and will output a text file with summary statistics on each ROI including the mean, standard deviation, min and max value, as well as the subjects corresponding to the min and max values.
+The following steps will allow you to: 
+1) Visualize your final DTI measure distributions for each ROI in the form of an interactive html.
+2) Output a text file with summary group-level statistics on each ROI including the mean, standard deviation, min, max and IQR values. In addition, the subject IDs corresponding to the min and max values are reported.
 
-This section assumes that you have installed:
-* R (download [here](https://cran.r-project.org/))
-* Download the automated script for generating the plots located in this repository [here](tbss_qc/ENIGMA_DTI_plots_ALL.R).
+**Getting started:**
+* If R is not installed, download and install R [here](https://cran.r-project.org/)
+* Download **both** the **[automated script](tbss_qc/ENIGMA_DTI_plots_ALL.R)** for generating the plots and the **[template file](tbss_qc/template.Rmd)** used by the script to generate the html. <ins>*Important: the script references the template file so both of these files are expected to be stored in the same folder.*</ins>
 
-After having quality checked each of your segmented structures you should have a file called 
-combinedROItable.csv from this [section](#protocol-for-roi-analysis-using-the-enigma-dti-template), which is a comma separated file with the mean FA of each ROI for each subject.
+**Input files:**
 
-It should look like this:
+Standard ENIGMA DTI output files previously generated from this [section](#protocol-for-roi-analysis-using-the-enigma-dti-template).
+
+You should have the following files: `combinedROItable_FA.csv`, `combinedROItable_MD.csv`, `combinedROItable_AD.csv`, `combinedROItable_RD.csv`. These are the CSV files containing all the mean DTI measures in each ROI for each subject (see example below). We assume these csvs include the standard white matter ROIs output by running the ENIGMA DTI protocol. 
+
+Note: Depending on when you ran your original ENIGMA DTI protocol, your final FA output may be named `combinedROItable.csv`. We suggest renaming this file to `combinedROItable_FA.csv` to ensure consistency with the other measures. You can use the following command to do so:
+
+```
+mv combinedROItable.csv combinedROItable_FA.csv
+```
 
 
 |  subjectID    |   Age     | Diagnosis |   Sex   |   ACR   |   ACR-L  |   ACR-R  |  ALIC |  ALIC-L |  ALIC-R |  AverageFA |  ... |
@@ -577,48 +592,49 @@ It should look like this:
 |    USC_09     |    50     |      1     |    1    |  0.453   |  0.463   |  0.442   |  0.541   |  0.545   |  0.538   |  0.381   |   ...   |
 |    USC_10     |    29     |      1     |    2    |  0.489   |  0.497   |  0.480   |  0.763   |  0.777   |  0.750   |  0.541   |   ...   |
 
-**NOTE:** There should be 64 + however many covariates of interest columns (indicated by the `...`).
+_Note:_ The .csv should contain 64 columns of mean microstructure, one for each region of interest plus any covariates of interest, including for example, age, sex, possibly diagnosis, and others including site/scanner dummy variables (indicated by the `...`).
 
-### Generating plots and summary statistics:
+### Usage:
 
-Make a new directory to store necessary files:
+| Flag       | Description                     | Default value                         |
+|------------|---------------------------------|---------------------------------------|
+| `--file`   | Path to the input CSV file      | None; flag is **requried** 		   |
+| `--outdir` | Path to output folder     	   | Present working directory 			   |
+| `--cohort` | Name of the cohort/site     	   | "My Cohort"                           |
 
-    mkdir /enigmaDTI/figures/
+Run the R script to generate the plots for each of your DTI measures (example below). Note: You can add an optional flag `--cohort` with the name of your cohort to show up on your plots:
 
-Copy your combinedROItable.csv file to your new folder:
+```
+Rscript ENIGMA_DTI_plots_ALL.R --file /path/to/combinedROItable_FA.csv --cohort cohort_name --outdir /path/to/QC_ENIGMA/
+Rscript ENIGMA_DTI_plots_ALL.R --file /path/to/combinedROItable_MD.csv --cohort cohort_name --outdir /path/to/QC_ENIGMA/
+Rscript ENIGMA_DTI_plots_ALL.R --file /path/to/combinedROItable_AD.csv --cohort cohort_name --outdir /path/to/QC_ENIGMA/
+Rscript ENIGMA_DTI_plots_ALL.R --file /path/to/combinedROItable_RD.csv --cohort cohort_name --outdir /path/to/QC_ENIGMA/
+```
 
-    cp /enigmaDTI/combinedROItable.csv /enigmaDTI/figures/
+It should only take a few minutes to generate all of the plots. Error messages will direct you towards aspects that will need to be changed in your data file in order to work properly. 
 
-Move the ENIGMA_DTI_plots.R script to the same folder:
+**Output files:**
 
-    mv /enigmaDTI/downloads/ENIGMA_DTI_plots.R /enigmaDTI/figures/
+All output files are saved to the `QC_ENIGMA` directory. If the directory does not exist, it will be created.
 
-Make sure you are in your new figures folder:
+The script produces three output files, using the input CSV filename as the prefix:
 
-    cd /enigmaDTI/figures
+- `<input_csv_basename>_stats.txt` — Run statistics summary.
+- `<input_csv_basename>_histogram.pdf` — Static histogram PDF.
+- `<input_csv_basename>_histogram.html` — Interactive histogram HTML.
 
-The code will make a new directory to store all of your summary stats and histogram plots:
+Please go through your html to make sure that your histograms look approximately normal. If there appear to be any outliers (hover over histograms to obtain subject IDs), please use the quality control scripts provided [here](#quality-control-protocols) or [here](#additional-qc-tools) to ensure that there are no quality or registration issues with your input DTI maps and skeletonizations. If you end up deciding that certain subjects have poor quality scans then you should give that subject an “NA” for all ROIs in all four `combinedROItable_{DTI_measure}.csv` tables.
 
-    /enigmaDTI/figures/QC_ENIGMA
-
-**NOTE:** You may have to make changes to paths in the above commands (slash orientation) so that they work on your system and data.
+<p align="center">
+<img src="tbss_qc/html_example.png" width="80%"">
+</p>
 
 <br>
 
-Next, run the R script to generate the plots, make sure to enter your cohort name so it shows up on all plots:
-
-```
-cohort= 'MyCohort'
-R --no-save --slave --args ${cohort} < ENIGMA_DTI_plots_ALL.R
-```
-
-It should only take a few minutes to generate all of the plots. If you get errors, the script might tell you what things need to be changed in your data file in order to work properly. Just make sure that your input file is in *.csv format similar to the file above.
-
-The output will be a pdf file with a series of histograms. You need to go through each page to make sure that your histograms look approximately normal. If there appear to be any outliers, please verify your  original FA image is appropriate. If you end up deciding that certain subjects are have poor quality scans then you should give that subject an “NA” for all ROIs in your combinedROItable.csv file and then re-run the [ENIGMA_DTI_plots_ALL.R script](tbss_qc/ENIGMA_DTI_plots_ALL.R). 
-
-**Please upload the ENIGMA_DTI_allROI_histograms.pdf and the ENIGMA_DTI_allROI_stats.txt files to the ENIGMA DTI Support or Working Group.**
+**Finally, please send the `*_histogram.html`, `*_histogram.pdf`, and `*_stats.txt` files to your project leads.**
 
 <br>
+
 
 # Additional QC tools
 
