@@ -1,0 +1,484 @@
+---
+title: "Interactive ROI Histograms"
+output:
+  html_document:
+    self_contained: true
+    theme: lumen
+    toc: true
+    toc_depth: 2
+    toc_float: true
+params:
+  site: "My Cohort"
+  rois_list: null
+  data_table: null
+  hbins: 30
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(plotly)
+library(htmlwidgets)
+
+# Retrieve parameters
+site       <- params$site
+rois_list  <- params$rois_list$value
+data_table <- params$data_table
+hbins      <- params$hbins
+
+# --- Sanity Checks ---
+if (is.null(data_table) || !is.data.frame(data_table)) {
+  stop("Error: Data table not provided or is not a data frame in the R Markdown template.")
+}
+
+# Ensure only valid ROI columns are used
+rois_list <- intersect(rois_list, names(data_table))
+```
+
+---
+
+# Histograms
+This report provides **interactive histograms** for each region of interest (ROI) in your dataset.  
+Use your mouse to **zoom**, **pan**, and **hover** over green (< 2sd) or red (≥  5sd) bars to identify subject ids of outliers. (These should be visually inspected for potential issues)
+
+**Study:** `r site`  
+**Number of ROIs processed:** `r length(rois_list)`
+
+---
+
+```{r html_inputs, results='asis'}
+
+html_content <- '
+<div id="graphSettings" 
+     style="background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 10px; 
+            padding: 12px 16px; margin: 12px 0 20px 0; 
+            font-family: Arial, sans-serif; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+
+  <h3 style="margin: 0 0 10px 0; font-size: 18px; color: #333; border-bottom: 1px solid #e0e0e0; padding-bottom: 4px;">
+    Graph Settings
+  </h3>
+  
+  <div style="display:flex; align-items: center; justify-content: space-around; gap: 2rem">
+  
+  <div>
+    <label for="scaleInput" style="font-size: 14px; color: #444; font-weight: bold;">Y-axis Scale:</label>
+    <select id="scaleInput" 
+            style="padding: 5px 10px; border: 1px solid #ccc; border-radius: 6px; 
+                   background-color: #fff; font-size: 14px; cursor: pointer; 
+                   transition: all 0.2s;">
+      <option value="linear" selected>Linear</option>
+      <option value="log">Log</option>
+    </select>
+  </div>
+  
+  <div>
+    <label for="sdLines" style="font-size: 14px; color: #444; font-weight: bold;">Toggle Lines:</label>
+    <input type="checkbox" id="sdLines" checked>
+  </div>
+  <div>
+  
+    <label for="legend" style="font-size: 14px; color: #444; font-weight: bold;">Toggle Legend:</label>
+    <input type="checkbox" id="legend" checked>
+  </div>
+  
+  </div>
+</div>
+
+'
+htmltools::HTML(html_content)
+```
+
+```{r helpers, include=FALSE}
+# --- Compute Basic Statistics ---
+compute_roi_stats <- function(DATA) {
+  list(
+    N     = sum(!is.na(DATA)),
+    mean  = mean(DATA, na.rm = TRUE),
+    sd    = sd(DATA, na.rm = TRUE),
+    min   = min(DATA, na.rm = TRUE),
+    max   = max(DATA, na.rm = TRUE)
+  )
+}
+
+# --- Prepare Histogram Data ---
+prepare_histogram_data <- function(DATA, hbins, mu, sdev, sd_multiples = c(2, 5)) {
+  hist_obj   <- hist(DATA, breaks = hbins, plot = FALSE)
+  bin_breaks <- hist_obj$breaks
+  bin_counts <- hist_obj$counts
+  bin_mids   <- (bin_breaks[-length(bin_breaks)] + bin_breaks[-1]) / 2
+  bin_widths <- diff(bin_breaks)
+
+  plot_df <- data.frame(
+    bin_mids   = bin_mids,
+    bin_counts = bin_counts,
+    bin_widths = bin_widths,
+    bin_start  = bin_breaks[-length(bin_breaks)],
+    bin_end    = bin_breaks[-1]
+  )
+
+  sorted_sd_multiples_asc <- sort(as.numeric(sd_multiples), decreasing = FALSE)
+  min_sd_multiple <- sorted_sd_multiples_asc[1]
+  max_sd_multiple <- sorted_sd_multiples_asc[length(sorted_sd_multiples_asc)]
+
+  plot_df$type <- NA_character_
+
+  lower_bound_min <- mu - min_sd_multiple * sdev
+  upper_bound_min <- mu + min_sd_multiple * sdev
+  plot_df$type[plot_df$bin_mids >= lower_bound_min & plot_df$bin_mids <= upper_bound_min] <- paste0("< ", min_sd_multiple, "σ")
+
+  if (length(sorted_sd_multiples_asc) > 1) {
+    for (i in 1:(length(sorted_sd_multiples_asc) - 1)) {
+      current_m <- sorted_sd_multiples_asc[i]     # e.g., 2
+      next_m    <- sorted_sd_multiples_asc[i + 1] # e.g., 5
+
+      lower_current <- mu - current_m * sdev
+      upper_current <- mu + current_m * sdev
+      lower_next    <- mu - next_m * sdev
+      upper_next    <- mu + next_m * sdev
+
+      plot_df$type[plot_df$bin_mids >= lower_next & plot_df$bin_mids < lower_current] <- paste0("≥ ", current_m, "σ")
+
+      plot_df$type[plot_df$bin_mids > upper_current & plot_df$bin_mids <= upper_next] <- paste0("≥ ", current_m, "σ")
+    }
+  }
+  
+   # --- adjust bins that straddle σ boundaries upward ---
+  for (m in sorted_sd_multiples_asc) {
+    lower_bound <- mu - m * sdev
+    upper_bound <- mu + m * sdev
+
+    crosses_lower <- plot_df$bin_start < lower_bound & plot_df$bin_end > lower_bound
+    crosses_upper <- plot_df$bin_start < upper_bound & plot_df$bin_end > upper_bound
+
+    plot_df$type[crosses_lower | crosses_upper] <- paste0("≥ ", m, "σ")
+  }
+  
+
+  plot_df$type[is.na(plot_df$type)] <- paste0("≥ ", max_sd_multiple, "σ")
+
+  plot_df
+}
+
+# --- Add Hover Text for Bins ---
+add_hover_text <- function(plot_df, DATA, SUBJECT_DATA = NULL, mu, sedv, sd_multiples = c(2, 5)) {
+  plot_df$hover_text <- ""
+  SUBJECT_IDS_AVAILABLE <- !is.null(SUBJECT_DATA)
+
+  min_sd_multiple <- min(sd_multiples)
+  innermost_type_name <- paste0("< ", min_sd_multiple, "σ")
+  sd_boundaries <-  c(mu + sd_multiples * sedv, mu - sd_multiples * sedv)
+
+  # Ensure sd_multiples is sorted for correct "next_sd_val" determination
+  sd_multiples <- sort(unique(sd_multiples))
+
+  for (i in seq_len(nrow(plot_df))) {
+    bin_min <- plot_df$bin_start[i]
+    bin_max <- plot_df$bin_end[i]
+
+    if (plot_df$type[i] != innermost_type_name && SUBJECT_IDS_AVAILABLE) {
+
+      # Base condition
+      in_bin <- DATA >= bin_min & DATA < bin_max
+
+      # Is Bin straddling sd_line
+      crossing_sd <- sd_boundaries[sd_boundaries > bin_min & sd_boundaries < bin_max]
+
+      if(length(crossing_sd) > 0) {
+        boundary <- crossing_sd[which.min(abs(crossing_sd - mu))]
+
+        # Check if +ve or -ve boundary
+        if(boundary > mu){
+          in_bin <- in_bin & DATA >= boundary
+        } else {
+          in_bin <- in_bin & DATA <= boundary
+        }
+      }
+
+      subjects_in_bin <- unique(SUBJECT_DATA[in_bin])
+
+      if (length(subjects_in_bin) > 0) {
+        if(length(subjects_in_bin) >= 100) {
+          hover_txt <- paste0("Frequency: ", plot_df$bin_counts[i], "<br> <i>Note: No. of subjects in this bin are too large and cannot be displayed here.</i>")
+        } else {
+          current_type_string <- plot_df$type[i] # e.g., "≥ 2σ" or "≥ 5σ"
+          new_label_for_hover <- ""
+
+          sd_val_match <- regmatches(current_type_string, regexec("≥\\s*([0-9.]+)\\s*σ", current_type_string))
+
+          if (length(sd_val_match[[1]]) > 1) {
+            current_sd_val <- as.numeric(sd_val_match[[1]][2])
+
+            current_sd_index <- which(sd_multiples == current_sd_val)
+
+            if (length(current_sd_index) > 0) {
+              current_sd_index <- current_sd_index[1]
+
+              if (current_sd_index == length(sd_multiples)) {
+                # Last SD multiple 
+                new_label_for_hover <- paste0("Subjects: ", current_type_string)
+              } else {
+                # Intermediate SD multiple
+                next_sd_val <- sd_multiples[current_sd_index + 1]
+                new_label_for_hover <- paste0("Subjects: ", current_type_string, " and < ", next_sd_val, "σ")
+              }
+            } else {
+              new_label_for_hover <- paste0("Subjects: ", current_type_string)
+            }
+          } else {
+             new_label_for_hover <- paste0("Subjects: ", current_type_string)
+          }
+
+          hover_txt <- paste0("<b>", new_label_for_hover, "</b><br>", paste0(subjects_in_bin, collapse = "\n"))
+        }
+      } else {
+        hover_txt <- paste0("Frequency: ", plot_df$bin_counts[i], "<br>No subjects identified in this bin.")
+      }
+    } else {
+      hover_txt <- paste0("Frequency: ", plot_df$bin_counts[i])
+    }
+    plot_df$hover_text[i] <- hover_txt
+  }
+
+  plot_df
+}
+# --- Generate Interactive Plot ---
+generate_roi_plot <- function(plot_df, roi_name, site, bin_breaks, mu, sdev, y_axis_type_param = 'linear', sd_multiples = c(2, 5)) {
+  
+
+  sdev_lines_multiples <- c(-rev(sd_multiples), sd_multiples) # e.g., for c(2,5) -> c(-5, -2, 2, 5)
+  sdev_lines_x <- mu + sdev_lines_multiples * sdev
+  
+  sdev_shapes <- list()
+  sdev_annotations <- list()
+
+  for (i in seq_along(sdev_lines_multiples)) {
+    x_val <- sdev_lines_x[i]
+    multiple <- sdev_lines_multiples[i]
+    
+    if (x_val >= min(bin_breaks) && x_val <= max(bin_breaks)) {
+      sdev_shapes[[length(sdev_shapes) + 1L]] <- list(
+        type = "line",
+        x0 = x_val,
+        x1 = x_val,
+        y0 = 0,
+        y1 = 1,
+        yref = "paper",
+        line = list(color = "maroon", dash = "dot", width = 1)
+      )
+
+      sdev_annotations[[length(sdev_annotations) + 1L]] <- list(
+        x = x_val,
+        y = 0.98,
+        xref = "x",
+        yref = "paper",
+        text = paste0(ifelse(multiple >=  0, paste0("+", multiple, "σ"), paste0(multiple, "σ"))),
+        showarrow = FALSE,
+        xanchor = "center",
+        yanchor = "top", 
+        font = list(color = "maroon", size = 16)
+      )
+    }
+  }
+  
+  sdev_shapes <- Filter(Negate(is.null), sdev_shapes) 
+  
+  all_bin_types <- unique(plot_df$type)
+  
+  plotly_colors <- list()
+
+  min_sd_mult_str <- paste0("< ", min(sd_multiples), "σ")
+  max_sd_mult_str <- paste0("≥ ", max(sd_multiples), "σ")
+
+  if (min_sd_mult_str %in% all_bin_types) {
+    plotly_colors[[min_sd_mult_str]] <- "#749F9A"
+  }
+  if (max_sd_mult_str %in% all_bin_types) {
+    plotly_colors[[max_sd_mult_str]] <- "#936269"
+  }
+
+  intermediate_bands <- setdiff(all_bin_types, c(min_sd_mult_str, max_sd_mult_str))
+  
+  if (length(intermediate_bands) > 0) {
+    sorted_intermediate_bands <- sort(intermediate_bands) 
+    
+    available_band_colors <- c("#6D83A3", "#a9ddd6", "#91adc2", "#7a8b99", "#9ba0bc", "#c1b8c8")
+    
+    for (idx in seq_along(sorted_intermediate_bands)) {
+      band_type <- sorted_intermediate_bands[idx]
+      plotly_colors[[band_type]] <- available_band_colors[((idx - 1) %% length(available_band_colors)) + 1]
+    }
+  }
+  
+  plotly_colors_vector <- unlist(plotly_colors)
+  names(plotly_colors_vector) <- names(plotly_colors)
+  
+  plot_ly(
+    data  = plot_df,
+    x     = ~bin_mids,
+    y     = ~bin_counts,
+    type  = "bar",
+    color = ~type, 
+    colors = plotly_colors_vector,
+    marker = list(line = list(color = "#2e2e2e", width = 1),
+                  width = ~bin_widths),
+    text = ~hover_text,
+    hoverinfo = "text",
+    textposition = "none"
+  ) %>%
+    layout(
+      title = paste(site, roi_name),
+      xaxis = list(title = roi_name, range = c(min(bin_breaks), max(bin_breaks))),
+      yaxis = list(title = "Frequency", type = y_axis_type_param),
+      bargap = 0,
+      showlegend = TRUE,
+      shapes= sdev_shapes,
+      annotations = sdev_annotations
+    )
+}
+
+```
+
+
+<script>
+  document.getElementById('scaleInput').onchange = async function () {changePlotAxis()}
+  
+  async function changePlotAxis() {
+    const scaleInputValue = document.getElementById('scaleInput').value;
+    const plots = document.getElementsByClassName("js-plotly-plot");
+    await Promise.all(
+      Array.from(plots).map(el =>
+        Plotly.relayout(el, { 'yaxis.type': scaleInputValue })
+      )
+    );
+  }
+  
+</script>
+
+<script>
+  document.getElementById('sdLines').onchange = async function () { toggleLines() };
+  
+  async function toggleLines() {
+    const isChecked = document.getElementById('sdLines').checked
+    const plots = document.getElementsByClassName("js-plotly-plot");
+    
+    await Promise.all(
+        Array.from(plots).map(el => { 
+          const currentLayout = el.layout;
+
+          const updatedShapes = (currentLayout.shapes || []).map(shape => ({
+              ...shape,
+              visible: isChecked
+          }));
+
+          const updatedAnnotations = (currentLayout.annotations || []).map(annotation => ({
+              ...annotation,
+              visible: isChecked
+          }));
+
+          return Plotly.relayout(el, {
+              shapes: updatedShapes,
+              annotations: updatedAnnotations
+          });
+        })
+      );
+  }
+  
+</script>
+
+<script>
+  document.getElementById('legend').onchange = async function () { toggleLegend() };
+  
+  async function toggleLegend() {
+    const isChecked = document.getElementById('legend').checked
+    const plots = document.getElementsByClassName("js-plotly-plot");
+    
+    await Promise.all(
+        Array.from(plots).map(el => { 
+          const currentLayout = el.layout;
+
+          return Plotly.relayout(el, {
+             showlegend: isChecked
+          });
+        })
+      );
+  }
+  
+</script>
+```{r generate_plots, results='asis'}
+# Plotly plots from within a loop don't render, using the following fix:
+# https://stackoverflow.com/questions/49990653/plotly-plot-doesnt-render-within-for-loop-of-rmarkdown-document
+
+output <- list()
+sd_multiples <- c(2, 5)
+y_axis_type_param <- 'linear'
+
+if (length(rois_list) == 0) {
+  cat("### No valid ROIs found in the provided list.\n")
+} else {
+  for (roi_name in rois_list) {
+    # ROI Header
+    txt <- paste0("## ROI: ", roi_name, "\n\n")
+    output[[length(output) + 1L]] <- txt
+    
+    if (!roi_name %in% names(data_table)) {
+      cat(paste0("### Skipping ROI: ", roi_name, " *(Column not found in data)*\n\n"))
+      next
+    }
+    
+    DATA <- data_table[[roi_name]]
+    if (all(is.na(DATA))) {
+      cat(paste0("### Skipping ROI: ", roi_name, " *(All values missing after cleaning)*\n\n"))
+      next
+    }
+    
+    # Subject IDs (if available)
+    SUBJECT_DATA <- if ("subjectID" %in% names(data_table)) data_table$subjectID else NULL
+    
+    # --- Compute Stats ---
+    stats <- compute_roi_stats(DATA)
+    
+    # --- Prepare Data for Plot ---
+    plot_df <- prepare_histogram_data(DATA, hbins, stats$mean, stats$sd, sd_multiples)
+    plot_df <- add_hover_text(plot_df, DATA, SUBJECT_DATA, stats$mean, stats$sd, sd_multiples)
+    
+    # --- Generate Interactive Plot ---
+    p <- generate_roi_plot(
+      plot_df, 
+      roi_name, 
+      site, 
+      unique(c(plot_df$bin_start, plot_df$bin_end)),
+      stats$mean,
+      stats$sd,
+      y_axis_type_param,
+      sd_multiples
+      )
+    
+    # Add to output list
+    output[[length(output) + 1L]] <- p
+  }
+}
+
+# Render all plots sequentially
+for (x in output) {
+  if (inherits(x, "character")) {
+    cat(x)
+  } else {
+    cat(htmltools::renderTags(as.widget(x))$html)
+  }
+}
+```
+
+
+```{r dependencies, echo=FALSE, message=FALSE, warning=FALSE}
+# Attach the dependencies so that Plotly widgets render correctly when using renderTags()
+deps <- lapply(
+  Filter(f = function(x) inherits(x, "htmlwidget"), x = output),
+  function(hw) htmltools::renderTags(hw)$dependencies
+)
+
+htmltools::attachDependencies(
+  x = htmltools::tagList(),
+  value = unlist(deps, recursive = FALSE)
+)
+```
+
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;"></div>
