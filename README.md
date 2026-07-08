@@ -245,6 +245,17 @@ _necessary files_
 mv combinedROItable.csv combinedROItable_FA.csv
 ```
 
+> [!CAUTION]
+> ### Important: UPDATED ROI Labels
+>
+> **If you see IFO in your list of ROIs, then:**
+>
+> - The ROI labeled **"IFO"** should be relabeled the uncinate (**"UNC"**)
+> - The ROI labeled **"UNC"** should be relabeled the tapetum (**"TAP"**)
+>
+> The ENIGMA-DTI pipeline was developed in 2012 using the JHU atlas available for FSL at that time. That atlas was later updated to include the tapetum, causing a shift in the atlas labels. **Please publish results using the corrected ROI labels noted above** (i.e. change `"IFO"` → `"UNC"` and `"UNC"` → `"TAP"`). To avoid confusion, we will **NOT** switch the labels back, so please carefully examine and correct your data.
+
+
 Congrats! Now you should have all of your subjects ROIs in one spreadsheet with only relevant covariates ready for association testing!
 
 <p align="center">
